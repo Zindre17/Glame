@@ -13,14 +13,15 @@ public class VertexArray : IDisposable
         Bind();
     }
 
-    unsafe public void AddBuffer<T>(VertexBuffer<T> buffer, VertexLayout<T> layout)
-        where T : unmanaged
+    unsafe public void AddBuffer<TBuffer, TLayout>(VertexBuffer<TBuffer> buffer, VertexLayout<TLayout> layout)
+        where TBuffer : unmanaged
+        where TLayout : unmanaged
     {
         Bind();
         buffer.Bind();
 
         var stride = layout.Stride;
-        var glType = GetGlType(typeof(T));
+        var glType = GetGlType(typeof(TLayout));
 
         var index = 0u;
         var offset = 0u;
@@ -36,7 +37,7 @@ public class VertexArray : IDisposable
                 (void*)offset
             );
 
-            offset += (uint)(attribute.Count * sizeof(T));
+            offset += (uint)(attribute.Count * sizeof(TLayout));
         }
     }
 
