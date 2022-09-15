@@ -8,7 +8,7 @@ public abstract class Buffer<T> : IDisposable where T : unmanaged
     protected uint id;
     protected GLEnum target;
 
-    public Buffer(GLEnum target, T[]? data = null)
+    unsafe public Buffer(GLEnum target, T[]? data = null)
     {
         this.target = target;
 
@@ -21,12 +21,23 @@ public abstract class Buffer<T> : IDisposable where T : unmanaged
         }
     }
 
-    unsafe public virtual void FeedData(Span<T> data)
+    private nuint currentLength = 0;
+
+    unsafe public virtual void FeedData(Span<T> data, nint offset = 0)
     {
+        var lengthOfData = (nuint)(sizeof(T) * data.Length);
         fixed (void* dataPointer = data)
         {
-            Gl.BufferData(target, (nuint)(sizeof(T) * data.Length), dataPointer, GLEnum.StaticDraw);
+            if (((nuint)offset) + lengthOfData < currentLength)
+            {
+                Gl.BufferSubData(target, offset, lengthOfData, dataPointer);
+            }
+            else
+            {
+                Gl.BufferData(target, lengthOfData, dataPointer, GLEnum.StaticDraw);
+            }
         }
+        currentLength = lengthOfData;
     }
 
     public void Bind()
