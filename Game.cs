@@ -11,11 +11,6 @@ public interface IGame
     void Pause();
 }
 
-public interface ITile
-{
-
-}
-
 public delegate void KeyPressed(Key key);
 public delegate void KeyReleased(Key key);
 
@@ -24,6 +19,9 @@ public sealed class Game
     public string Title { get; init; } = "Glame";
     public (int Width, int Height) Resolution { get; init; } = (800, 600);
     public int FramePerSecond { get; init; } = 60;
+
+    public delegate void Update(double deltaTime);
+    public Update? OnFrameUpdate;
 
     public Game()
     {
@@ -49,9 +47,19 @@ public sealed class Game
         window = Window.Create(options);
 
         window.Load += OnLoad;
+        window.Update += OnUpdate;
         window.Render += OnRender;
         window.Closing += OnClose;
         window.Resize += OnResize;
+    }
+
+    private void OnUpdate(double deltaTime)
+    {
+        OnFrameUpdate?.Invoke(deltaTime);
+        var sprites = Sprite.AllVisible;
+        UpdateCombinedTexture(sprites);
+        UpdateVertexBuffer(sprites);
+        UpdateIndexBuffer(sprites);
     }
 
     private void OnResize(Vector2D<int> newScreenSize)
@@ -74,8 +82,6 @@ public sealed class Game
         window!.Center();
 
         SetGlContext(window!);
-
-
     }
 }
 
